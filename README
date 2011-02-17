@@ -1,0 +1,10 @@
+Aplinkos paruošimas:
+export JAVA_HOME=/kelias/į/jdk
+export JAVA_DEV_ROOT=/kelias/į/katalogą/kuriame/šis/failas
+export IS_UNIX=true # jei ne UNIX, nereikia
+
+Kompiliavimas:
+make
+
+Paleidimas:
+make run
