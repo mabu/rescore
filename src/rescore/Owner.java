@@ -14,14 +14,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.apache.log4j.Logger;
 
-public class Owner {
+public class Owner extends NamedEntity {
   private static Logger logger = Logger.getLogger(Owner.class.getName());
-  private static PreparedStatement selectOwner, selectAllOwners, selectAllOwnerIds;
-  private static TreeMap<Integer, WeakReference<Owner> > owners = new TreeMap<Integer, WeakReference<Owner> >();
+  private static PreparedStatement selectOwner, selectAllOwners, selectAllOwnerIds, deleteOwner, updateName;
+  private static TreeMap<Integer, WeakReference<? extends NamedEntity> > owners = new TreeMap<Integer, WeakReference<? extends NamedEntity> >();
   private static int ownersCount = -1; // kiek savininkų yra duomenų bazėje
-  private static double OWNER_LIST_RATIO = 0.5;
-  private int id;
-  private String name;
 
 /**
  * Konstruktorius.
@@ -40,10 +37,10 @@ public class Owner {
  * @return savininkas su nurodytu id
  */
   public static Owner get(int id) {
-    WeakReference<Owner> weakReference = owners.get(id);
+    WeakReference<? extends NamedEntity> weakReference = owners.get(id);
     Owner owner = null;
     if (weakReference != null)
-      owner = weakReference.get();
+      owner = (Owner)weakReference.get();
     if (owner == null) {
       try {
         selectOwner.setInt(1, id);
@@ -67,15 +64,15 @@ public class Owner {
   public static List<Owner> getAll() {
     Vector<Owner> ownerList = new Vector<Owner>();
     Owner owner;
-    WeakReference<Owner> weakReference;
+    WeakReference<? extends NamedEntity> weakReference;
     try {
-      if (ownersCount == -1 || owners.size() / ownersCount > OWNER_LIST_RATIO) {
+      if (ownersCount == -1 || owners.size() / ownersCount > LIST_RATIO) {
         ResultSet resultSet = selectAllOwners.executeQuery();
         for (ownersCount = 0; resultSet.next(); ownersCount++) {
           owner = null;
           weakReference = owners.get(resultSet.getInt(1));
           if (weakReference != null)
-            owner = weakReference.get();
+            owner = (Owner)weakReference.get();
           if (owner == null) {
             owner = new Owner(resultSet.getInt(1), resultSet.getString(2));
             owners.put(resultSet.getInt(1), new WeakReference<Owner>(owner));
@@ -105,16 +102,23 @@ public class Owner {
       selectOwner = connection.prepareStatement("SELECT Vardas FROM Savininkai WHERE Id = ?");
       selectAllOwners = connection.prepareStatement("SELECT Id, Vardas FROM Savininkai ORDER BY Id");
       selectAllOwnerIds = connection.prepareStatement("SELECT Id FROM Savininkai ORDER BY Id");
+      updateName = connection.prepareStatement("UPDATE Savininkai SET Vardas = ? WHERE Id = ?");
+      deleteOwner = connection.prepareStatement("DELETE FROM Savininkai WHERE Id = ?");
     } catch (SQLException exception) {
       logger.error("prepareStatements SQL error: " + exception.getMessage());
     }
   }
 
-  public int getId() {
-    return id;
+  public boolean setName(String name) {
+    return setName(name, updateName);
   }
 
-  public String getName() {
-    return name;
+  public boolean remove() {
+    return remove(deleteOwner);
   }
+
+  protected TreeMap<Integer, WeakReference <? extends NamedEntity> > getObjectMap() {
+    return owners;
+  }
+
 }

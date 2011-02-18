@@ -33,6 +33,7 @@ public class Main {
     YachtClass.prepareStatements(connection);
     Captain.prepareStatements(connection);
     Owner.prepareStatements(connection);
+    NamedEntity.prepareStatements(connection);
 
     (new YachtManager(System.in, System.out)).start();
   }

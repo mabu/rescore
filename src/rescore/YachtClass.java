@@ -14,14 +14,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.apache.log4j.Logger;
 
-public class YachtClass {
+public class YachtClass extends NamedEntity {
   private static Logger logger = Logger.getLogger(YachtClass.class.getName());
-  private static PreparedStatement selectYachtClass, selectAllYachtClasss, selectAllYachtClassIds;
-  private static TreeMap<Integer, WeakReference<YachtClass> > yachtClasss = new TreeMap<Integer, WeakReference<YachtClass> >();
-  private static int yachtClasssCount = -1; // kiek modelių yra duomenų bazėje
-  private static double YACHTCLASS_LIST_RATIO = 0.5;
-  private int id;
-  private String name;
+  private static PreparedStatement selectYachtClass, selectAllYachtClasses, selectAllYachtClassIds, updateName, deleteYachtClass;
+  private static TreeMap<Integer, WeakReference<? extends NamedEntity> > yachtClasses = new TreeMap<Integer, WeakReference<? extends NamedEntity> >();
+  private static int yachtClassesCount = -1; // kiek modelių yra duomenų bazėje
 
 /**
  * Konstruktorius.
@@ -40,17 +37,17 @@ public class YachtClass {
  * @return modelis su nurodytu id
  */
   public static YachtClass get(int id) {
-    WeakReference<YachtClass> weakReference = yachtClasss.get(id);
+    WeakReference<? extends NamedEntity> weakReference = yachtClasses.get(id);
     YachtClass yachtClass = null;
     if (weakReference != null)
-      yachtClass = weakReference.get();
+      yachtClass = (YachtClass)weakReference.get();
     if (yachtClass == null) {
       try {
         selectYachtClass.setInt(1, id);
         ResultSet resultSet = selectYachtClass.executeQuery();
         if (resultSet.next()) {
           yachtClass = new YachtClass(id, resultSet.getString(1));
-          yachtClasss.put(id, new WeakReference<YachtClass>(yachtClass));
+          yachtClasses.put(id, new WeakReference<YachtClass>(yachtClass));
         }
       } catch (SQLException exception) {
         logger.error("get SQL error: " + exception.getMessage());
@@ -67,24 +64,24 @@ public class YachtClass {
   public static List<YachtClass> getAll() {
     Vector<YachtClass> yachtClassList = new Vector<YachtClass>();
     YachtClass yachtClass;
-    WeakReference<YachtClass> weakReference;
+    WeakReference<? extends NamedEntity> weakReference;
     try {
-      if (yachtClasssCount == -1 || yachtClasss.size() / yachtClasssCount > YACHTCLASS_LIST_RATIO) {
-        ResultSet resultSet = selectAllYachtClasss.executeQuery();
-        for (yachtClasssCount = 0; resultSet.next(); yachtClasssCount++) {
+      if (yachtClassesCount == -1 || yachtClasses.size() / yachtClassesCount > LIST_RATIO) {
+        ResultSet resultSet = selectAllYachtClasses.executeQuery();
+        for (yachtClassesCount = 0; resultSet.next(); yachtClassesCount++) {
           yachtClass = null;
-          weakReference = yachtClasss.get(resultSet.getInt(1));
+          weakReference = yachtClasses.get(resultSet.getInt(1));
           if (weakReference != null)
-            yachtClass = weakReference.get();
+            yachtClass = (YachtClass)weakReference.get();
           if (yachtClass == null) {
             yachtClass = new YachtClass(resultSet.getInt(1), resultSet.getString(2));
-            yachtClasss.put(resultSet.getInt(1), new WeakReference<YachtClass>(yachtClass));
+            yachtClasses.put(resultSet.getInt(1), new WeakReference<YachtClass>(yachtClass));
           }
           yachtClassList.add(yachtClass);
         }
       } else {
         ResultSet resultSet = selectAllYachtClassIds.executeQuery();
-        for (yachtClasssCount = 0; resultSet.next(); yachtClasssCount++) {
+        for (yachtClassesCount = 0; resultSet.next(); yachtClassesCount++) {
           yachtClassList.add(get(resultSet.getInt(1)));
         }
       }
@@ -103,18 +100,24 @@ public class YachtClass {
   static void prepareStatements(Connection connection) {
     try {
       selectYachtClass = connection.prepareStatement("SELECT Pavadinimas FROM Modeliai WHERE Id = ?");
-      selectAllYachtClasss = connection.prepareStatement("SELECT Id, Pavadinimas FROM Modeliai ORDER BY Id");
+      selectAllYachtClasses = connection.prepareStatement("SELECT Id, Pavadinimas FROM Modeliai ORDER BY Id");
       selectAllYachtClassIds = connection.prepareStatement("SELECT Id FROM Modeliai ORDER BY Id");
+      updateName = connection.prepareStatement("UPDATE Modeliai SET Pavadinimas = ? WHERE Id = ?");
+      deleteYachtClass = connection.prepareStatement("DELETE FROM Modeliai WHERE Id = ?");
     } catch (SQLException exception) {
       logger.error("prepareStatements SQL error: " + exception.getMessage());
     }
   }
 
-  public int getId() {
-    return id;
+  public boolean setName(String name) {
+    return setName(name, updateName);
   }
 
-  public String getName() {
-    return name;
+  public boolean remove() {
+    return remove(deleteYachtClass);
+  }
+
+  protected TreeMap<Integer, WeakReference <? extends NamedEntity> > getObjectMap() {
+    return yachtClasses;
   }
 }

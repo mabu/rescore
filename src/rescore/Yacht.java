@@ -14,20 +14,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.apache.log4j.Logger;
 
-public class Yacht {
+public class Yacht extends NamedEntity {
   private static Logger logger = Logger.getLogger(Yacht.class.getName());
-  private static PreparedStatement selectYacht, selectYachtBySailNumber, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors, lastInsertId;
-  private static TreeMap<Integer, WeakReference<Yacht> > yachts = new TreeMap<Integer, WeakReference<Yacht> >();
+  private static PreparedStatement selectYacht, selectYachtBySailNumber, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors;
+  private static TreeMap<Integer, WeakReference<? extends NamedEntity> > yachts = new TreeMap<Integer, WeakReference<? extends NamedEntity> >();
   private static TreeMap<String, WeakReference<Yacht> > yachtsBySailNumbers = new TreeMap<String, WeakReference<Yacht> >();
   private static int yachtsCount = -1; // kiek jachtų yra duomenų bazėje
-  private static final double YACHT_LIST_RATIO = 0.5;
-  // jeigu yachts turi mažesnę nei YACHT_LIST_RATIO dalį visų įrašų arba visų
-  // įrašų skaičius nežinomas, tada duombazės užklausia visų įrašų; priešingu
-  // atveju – visų burių numerių, pagal kuriuos gauna trūkstamas jachtas po vieną
   private String sailNumber;
   private YachtClass yachtClass;
-  private String name;
-  private int id, year, yachtClassId, captainId, ownerId;
+  private int year, yachtClassId, captainId, ownerId;
   private Captain captain;
   private Owner owner;
   private String sponsors;
@@ -55,10 +50,10 @@ public class Yacht {
  * @return jachtos objektas su duotu ID, arba null, jei tokios jachtos nėra
  */
   public static Yacht get(int id) {
-    WeakReference<Yacht> weakReference = yachts.get(id);
+    WeakReference<? extends NamedEntity> weakReference = yachts.get(id);
     Yacht yacht = null;
     if (weakReference != null)
-      yacht = weakReference.get();
+      yacht = (Yacht)weakReference.get();
     if (yacht == null) {
       try {
         selectYacht.setInt(1, id);
@@ -110,15 +105,15 @@ public class Yacht {
   public static List<Yacht> getAll() {
     Vector<Yacht> yachtList = new Vector<Yacht>();
     Yacht yacht;
-    WeakReference<Yacht> weakReference;
+    WeakReference<? extends NamedEntity> weakReference;
     try {
-      if (yachtsCount == -1 || yachts.size() / yachtsCount > YACHT_LIST_RATIO) {
+      if (yachtsCount == -1 || yachts.size() / yachtsCount > LIST_RATIO) {
         ResultSet resultSet = selectAllYachts.executeQuery();
         for (yachtsCount = 0; resultSet.next(); yachtsCount++) {
           yacht = null;
           weakReference = yachts.get(resultSet.getInt(1));
           if (weakReference != null)
-            yacht = weakReference.get();
+            yacht = (Yacht)weakReference.get();
           if (yacht == null) {
             yacht = new Yacht(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7), resultSet.getString(8));
             yachts.put(resultSet.getInt(1), new WeakReference<Yacht>(yacht));
@@ -159,20 +154,9 @@ public class Yacht {
       updateCaptain = connection.prepareStatement("UPDATE Jachtos SET Kapitonas = ? WHERE Id = ?");
       updateOwner = connection.prepareStatement("UPDATE Jachtos SET Savininkas = ? WHERE Id = ?");
       updateSponsors = connection.prepareStatement("UPDATE Jachtos SET Rėmėjai = ? WHERE Id = ?");
-      lastInsertId = connection.prepareStatement("SELECT LAST_INSERT_ID()");
     } catch (SQLException exception) {
       logger.error("prepareStatements SQL error: " + exception.getMessage());
     }
-  }
-
-  static int getLastInsertId() {
-    try {
-      ResultSet resultSet = lastInsertId.executeQuery();
-      return resultSet.getInt(1);
-    } catch (SQLException exception) {
-      logger.error("getLastInsertId SQL error: " + exception.getMessage());
-    }
-    return 0;
   }
 
 /**
@@ -242,28 +226,16 @@ public class Yacht {
    *         objektas buvo panaikintas anksčiau
    */
   public boolean remove() {
-    if (sailNumber != null) {
-      try {
-        deleteYacht.setInt(1, id);
-        int rowsDeleted = deleteYacht.executeUpdate();
-        if (rowsDeleted == 1) {
-          yachts.remove(id);
-          yachtsBySailNumbers.remove(sailNumber);
-          id = 0;
-          sailNumber = null;
-          return true;
-        } else {
-          logger.warn("Strange remove deleted database rows count: " + rowsDeleted);
-        }
-      } catch (SQLException exception) {
-        logger.error("remove SQL error: " + exception.getMessage());
-      }
+    boolean success = remove(deleteYacht);
+    if (success) {
+      yachtsBySailNumbers.remove(sailNumber);
+      sailNumber = null;
     }
-    return false;
+    return success;
   }
 
   protected void finalize () {
-    yachts.remove(id);
+    super.finalize();
     yachtsBySailNumbers.remove(sailNumber);
   }
 
@@ -306,24 +278,7 @@ public class Yacht {
   }
 
   public boolean setName(String name) {
-    boolean ret = false;
-    try {
-      if (name == null)
-        updateName.setNull(1, java.sql.Types.VARCHAR);
-      else
-        updateName.setString(1, name);
-      updateName.setInt(2, id);
-      int rowsAffected = updateName.executeUpdate();
-      if (rowsAffected == 1) {
-        this.name = name;
-        ret = true;
-      } else {
-        logger.warn("Strange setName updated database rows count: " + rowsAffected);
-      }
-    } catch (SQLException exception) {
-      logger.error("setName SQL error: " + exception.getMessage());
-    }
-    return ret;
+    return setName(name, updateName);
   }
 
   public boolean setYear(int year) {
@@ -418,10 +373,6 @@ public class Yacht {
     return ret;
   }
 
-  public int getId() {
-    return id;
-  }
-
   public String getSailNumber() {
     return sailNumber;
   }
@@ -430,10 +381,6 @@ public class Yacht {
     if (yachtClass == null)
       yachtClass = YachtClass.get(yachtClassId);
     return yachtClass;
-  }
-
-  public String getName() {
-    return name;
   }
 
   /**
@@ -459,6 +406,10 @@ public class Yacht {
 
   public String getSponsors() {
     return sponsors;
+  }
+
+  protected TreeMap<Integer, WeakReference <? extends NamedEntity> > getObjectMap() {
+    return yachts;
   }
 
 }

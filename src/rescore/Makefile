@@ -7,6 +7,7 @@ SOURCE  = \
 	Owner.java \
 	YachtManager.java \
 	Main.java \
+	NamedEntity.java \
 
 RMI_SOURCE =
 
