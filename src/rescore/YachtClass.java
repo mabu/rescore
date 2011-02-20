@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 public class YachtClass extends NamedEntity {
   private static Logger logger = Logger.getLogger(YachtClass.class.getName());
   private static PreparedStatement selectYachtClass, selectAllYachtClasses, selectAllYachtClassIds, updateName, deleteYachtClass;
-  private static TreeMap<Integer, WeakReference<? extends NamedEntity> > yachtClasses = new TreeMap<Integer, WeakReference<? extends NamedEntity> >();
+  private static TreeMap<Integer, WeakReference<NamedEntity> > yachtClasses = new TreeMap<Integer, WeakReference<NamedEntity> >();
   private static int yachtClassesCount = -1; // kiek modelių yra duomenų bazėje
 
 /**
@@ -31,29 +31,25 @@ public class YachtClass extends NamedEntity {
   }
 
 /**
+ * Šį konstruktorių kviečia statiniai NamedEntity klasės metodai,
+ * imantys objektą iš duomenų bazės.
+ *
+ * @param id objekto ID
+ * @param resultSet skaitymui paruošta duombazės eilutė su kitais objekto
+ *                  kūrimui reikalingais laukais, kuriuos grąžina selectYachtClass
+ */
+  public YachtClass(int id, ResultSet resultSet) throws SQLException {
+    this(id, resultSet.getString(1));
+  }
+
+/**
  * Grąžina objektą modelio su nurodytu id.
  *
  * @param id modelio id
  * @return modelis su nurodytu id
  */
   public static YachtClass get(int id) {
-    WeakReference<? extends NamedEntity> weakReference = yachtClasses.get(id);
-    YachtClass yachtClass = null;
-    if (weakReference != null)
-      yachtClass = (YachtClass)weakReference.get();
-    if (yachtClass == null) {
-      try {
-        selectYachtClass.setInt(1, id);
-        ResultSet resultSet = selectYachtClass.executeQuery();
-        if (resultSet.next()) {
-          yachtClass = new YachtClass(id, resultSet.getString(1));
-          yachtClasses.put(id, new WeakReference<YachtClass>(yachtClass));
-        }
-      } catch (SQLException exception) {
-        logger.error("get SQL error: " + exception.getMessage());
-      }
-    }
-    return yachtClass;
+    return (YachtClass)NamedEntity.get(id, selectYachtClass, yachtClasses, YachtClass.class);
   }
 
 /**
@@ -64,7 +60,7 @@ public class YachtClass extends NamedEntity {
   public static List<YachtClass> getAll() {
     Vector<YachtClass> yachtClassList = new Vector<YachtClass>();
     YachtClass yachtClass;
-    WeakReference<? extends NamedEntity> weakReference;
+    WeakReference<NamedEntity> weakReference;
     try {
       if (yachtClassesCount == -1 || yachtClasses.size() / yachtClassesCount > LIST_RATIO) {
         ResultSet resultSet = selectAllYachtClasses.executeQuery();
@@ -75,7 +71,7 @@ public class YachtClass extends NamedEntity {
             yachtClass = (YachtClass)weakReference.get();
           if (yachtClass == null) {
             yachtClass = new YachtClass(resultSet.getInt(1), resultSet.getString(2));
-            yachtClasses.put(resultSet.getInt(1), new WeakReference<YachtClass>(yachtClass));
+            yachtClasses.put(resultSet.getInt(1), new WeakReference<NamedEntity>(yachtClass));
           }
           yachtClassList.add(yachtClass);
         }
@@ -117,7 +113,7 @@ public class YachtClass extends NamedEntity {
     return remove(deleteYachtClass);
   }
 
-  protected TreeMap<Integer, WeakReference <? extends NamedEntity> > getObjectMap() {
+  protected TreeMap<Integer, WeakReference <NamedEntity> > getObjectMap() {
     return yachtClasses;
   }
 }

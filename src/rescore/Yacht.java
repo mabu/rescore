@@ -16,9 +16,8 @@ import org.apache.log4j.Logger;
 
 public class Yacht extends NamedEntity {
   private static Logger logger = Logger.getLogger(Yacht.class.getName());
-  private static PreparedStatement selectYacht, selectYachtBySailNumber, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors;
-  private static TreeMap<Integer, WeakReference<? extends NamedEntity> > yachts = new TreeMap<Integer, WeakReference<? extends NamedEntity> >();
-  private static TreeMap<String, WeakReference<Yacht> > yachtsBySailNumbers = new TreeMap<String, WeakReference<Yacht> >();
+  private static PreparedStatement selectYacht, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors;
+  private static TreeMap<Integer, WeakReference<NamedEntity> > yachts = new TreeMap<Integer, WeakReference<NamedEntity> >();
   private static int yachtsCount = -1; // kiek jachtų yra duomenų bazėje
   private String sailNumber;
   private YachtClass yachtClass;
@@ -44,57 +43,25 @@ public class Yacht extends NamedEntity {
   }
 
 /**
+ * Šį konstruktorių kviečia statiniai NamedEntity klasės metodai,
+ * imantys objektą iš duomenų bazės.
+ *
+ * @param id objekto ID
+ * @param resultSet skaitymui paruošta duombazės eilutė su kitais objekto
+ *                  kūrimui reikalingais laukais, kuriuos grąžina selectYacht
+ */
+  public Yacht(int id, ResultSet resultSet) throws SQLException {
+    this(id, resultSet.getString(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getInt(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getString(7));
+  }
+
+/**
  * Grąžina jachtą pagal jos ID.
  *
  * @param id jachtos ID
  * @return jachtos objektas su duotu ID, arba null, jei tokios jachtos nėra
  */
   public static Yacht get(int id) {
-    WeakReference<? extends NamedEntity> weakReference = yachts.get(id);
-    Yacht yacht = null;
-    if (weakReference != null)
-      yacht = (Yacht)weakReference.get();
-    if (yacht == null) {
-      try {
-        selectYacht.setInt(1, id);
-        ResultSet resultSet = selectYacht.executeQuery();
-        if (resultSet.next()) {
-          yacht = new Yacht(id, resultSet.getString(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getInt(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getString(7));
-          yachts.put(yacht.getId(), new WeakReference<Yacht>(yacht));
-          yachtsBySailNumbers.put(yacht.getSailNumber(), new WeakReference<Yacht>(yacht));
-        }
-      } catch (SQLException exception) {
-        logger.error("get SQL error: " + exception.getMessage());
-      }
-    }
-    return yacht;
-  }
-
-/**
- * Grąžina jachtą pagal jos burės numerį.
- *
- * @param sailNumber burės numeris
- * @return jachtos objektas su duotu numeriu, arba null, jei tokios jachtos nėra
- */
-  public static Yacht getBySailNumber(String sailNumber) {
-    WeakReference<Yacht> weakReference = yachtsBySailNumbers.get(sailNumber);
-    Yacht yacht = null;
-    if (weakReference != null)
-      yacht = weakReference.get();
-    if (yacht == null) {
-      try {
-        selectYachtBySailNumber.setString(1, sailNumber);
-        ResultSet resultSet = selectYachtBySailNumber.executeQuery();
-        if (resultSet.next()) {
-          yacht = new Yacht(resultSet.getInt(1), sailNumber, resultSet.getInt(2), resultSet.getString(3), resultSet.getInt(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getString(7));
-          yachts.put(yacht.getId(), new WeakReference<Yacht>(yacht));
-          yachtsBySailNumbers.put(sailNumber, new WeakReference<Yacht>(yacht));
-        }
-      } catch (SQLException exception) {
-        logger.error("get SQL error: " + exception.getMessage());
-      }
-    }
-    return yacht;
+    return (Yacht)NamedEntity.get(id, selectYacht, yachts, Yacht.class);
   }
 
 /**
@@ -105,7 +72,7 @@ public class Yacht extends NamedEntity {
   public static List<Yacht> getAll() {
     Vector<Yacht> yachtList = new Vector<Yacht>();
     Yacht yacht;
-    WeakReference<? extends NamedEntity> weakReference;
+    WeakReference<NamedEntity> weakReference;
     try {
       if (yachtsCount == -1 || yachts.size() / yachtsCount > LIST_RATIO) {
         ResultSet resultSet = selectAllYachts.executeQuery();
@@ -116,8 +83,7 @@ public class Yacht extends NamedEntity {
             yacht = (Yacht)weakReference.get();
           if (yacht == null) {
             yacht = new Yacht(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7), resultSet.getString(8));
-            yachts.put(resultSet.getInt(1), new WeakReference<Yacht>(yacht));
-            yachtsBySailNumbers.put(resultSet.getString(2), new WeakReference<Yacht>(yacht));
+            yachts.put(resultSet.getInt(1), new WeakReference<NamedEntity>(yacht));
           }
           yachtList.add(yacht);
         }
@@ -142,7 +108,6 @@ public class Yacht extends NamedEntity {
   static void prepareStatements(Connection connection) {
     try {
       selectYacht = connection.prepareStatement("SELECT BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai FROM Jachtos WHERE Id = ?");
-      selectYachtBySailNumber = connection.prepareStatement("SELECT Id, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai FROM Jachtos WHERE BurėsNumeris = ?");
       selectAllYachts = connection.prepareStatement("SELECT Id, BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai FROM Jachtos ORDER BY Id");
       selectAllYachtIds = connection.prepareStatement("SELECT Id FROM Jachtos ORDER BY Id");
       insertYacht = connection.prepareStatement("INSERT INTO Jachtos (BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai) VALUES(?, ?, ?, ?, ?, ?, ?)");
@@ -207,8 +172,7 @@ public class Yacht extends NamedEntity {
         insertYacht.setString(7, sponsors);
       if (insertYacht.executeUpdate() == 1) {
         yacht = new Yacht(getLastInsertId(), sailNumber, yachtClass.getId(), name, year, captainId, ownerId, sponsors);
-        yachts.put(yacht.getId(), new WeakReference<Yacht>(yacht));
-        yachtsBySailNumbers.put(sailNumber, new WeakReference<Yacht>(yacht));
+        yachts.put(yacht.getId(), new WeakReference<NamedEntity>(yacht));
       } else {
         // TODO
       }
@@ -226,17 +190,11 @@ public class Yacht extends NamedEntity {
    *         objektas buvo panaikintas anksčiau
    */
   public boolean remove() {
-    boolean success = remove(deleteYacht);
-    if (success) {
-      yachtsBySailNumbers.remove(sailNumber);
-      sailNumber = null;
-    }
-    return success;
+    return remove(deleteYacht);
   }
 
   protected void finalize () {
     super.finalize();
-    yachtsBySailNumbers.remove(sailNumber);
   }
 
   public boolean setSailNumber(String sailNumber) {
@@ -408,7 +366,7 @@ public class Yacht extends NamedEntity {
     return sponsors;
   }
 
-  protected TreeMap<Integer, WeakReference <? extends NamedEntity> > getObjectMap() {
+  protected TreeMap<Integer, WeakReference <NamedEntity> > getObjectMap() {
     return yachts;
   }
 

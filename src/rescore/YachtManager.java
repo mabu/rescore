@@ -95,29 +95,27 @@ public class YachtManager {
   }
 
   private Yacht chooseYacht(List<Yacht> list) {
-    int traversed = 0, size = list.size();
-    String sailNumber = null;
+    int traversed = 0, id = 0, size = list.size();
     if (list.isEmpty()) {
       printStream.println("Jachtų sąrašas tuščias");
       return null;
     }
-    scanner.nextLine();
     for (Yacht yacht : list) {
-      printStream.println(yacht.getSailNumber() + (yacht.getName() == null ? "" : " (" + yacht.getName() + ")"));
+      printStream.println(yacht.getId() + ". " + yacht.getSailNumber() + (yacht.getName() == null ? "" : " (" + yacht.getName() + ")"));
       traversed++;
       if (traversed % LIST_ITEMS_AT_ONCE == 0 && traversed != list.size()) {
-        printStream.println("Rodomi pirmi " + traversed + " iš " + size + " pasirinkimų. Įveskite pasirinktos jachtos burės numerį, arba neįveskite nieko, jei norite matyti sąrašo tęsinį. Norėdami nieko nepasirinkti, įveskite tarpelį.");
-        sailNumber = scanner.nextLine();
-        if (!sailNumber.isEmpty())
+        printStream.println("Rodomi pirmi " + traversed + " iš " + size + " pasirinkimų. Įveskite prie pasirinktos jachtos esantį numerį, arba 0, jei norite matyti sąrašo tęsinį. Norėdami nieko nepasirinkti, įveskite neigiamą skaičių.");
+        id = scanInt();
+        if (id != 0)
           break;
       }
     }
-    if (sailNumber == null || sailNumber.isEmpty()) {
-      printStream.println("Įveskite pasirinktos jachtos burės numerį. Norėdami nieko nepasirinkti, spauskite enter.");
-      sailNumber = scanner.nextLine();
+    if (id == 0) {
+      printStream.println("Įveskite prie pasirinktos jachtos esantį numerį. Norėdami nieko nepasirinkti, įveskite neteigiamą skaičių.");
+      id = scanInt();
     }
-    if (!sailNumber.isEmpty())
-      return Yacht.getBySailNumber(sailNumber);
+    if (id > 0)
+      return Yacht.get(id);
     else
       return null;
     }

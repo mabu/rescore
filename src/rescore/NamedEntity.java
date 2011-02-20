@@ -4,7 +4,7 @@
 package rescore;
 
 import java.lang.ref.WeakReference;
-import java.util.TreeMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Vector;
 import java.sql.PreparedStatement;
@@ -22,6 +22,42 @@ public abstract class NamedEntity {
   // atveju – visų ID, pagal kuriuos gauna trūkstamas esybes po vieną
   protected int id;
   protected String name;
+
+/**
+ * Grąžina esybę pagal jos ID.
+ *
+ * @param id        esybės ID
+ * @param select    paruošta užklausa esybės iš duomazės pagal ID gavimui
+ * @param objectMap jau gautų iš duombazės objektų nuorodos
+ * @param subClass  konkrečios esybės klasė, turinti konstruktorių, kuriam
+ *                  perduodamas ID ir ResultSet
+ * @return jeigu yra anksčiau gauta esybė su duotu ID – grąžina ją;
+ *         jeigu ją paėmė iš duombazės – grąžina rezultatą (ResultSet);
+ *         jeigu esybės su duotu ID nėra duombazėje, grąžina null
+ */
+  protected static NamedEntity get(int id, PreparedStatement select, Map<Integer, WeakReference<NamedEntity> > objectMap, Class<? extends NamedEntity> subClass) {
+    WeakReference<NamedEntity> weakReference = objectMap.get(id);
+    NamedEntity namedEntity = null;
+    if (weakReference != null)
+      namedEntity = weakReference.get();
+    if (namedEntity == null) {
+      try {
+        select.setInt(1, id);
+        ResultSet resultSet = select.executeQuery();
+        if (resultSet.next()) {
+          namedEntity = subClass.getConstructor(int.class, ResultSet.class).newInstance(id, resultSet);
+          objectMap.put(namedEntity.getId(), new WeakReference<NamedEntity>(namedEntity));
+        } else {
+          logger.warn("Entity not found in the database");
+        }
+      } catch (SQLException exception) {
+        logger.error("get SQL error: " + exception.getMessage());
+      } catch (Exception exception) {
+        logger.error("get non-SQL error: " + exception.getMessage());
+      }
+    }
+    return namedEntity;
+  }
 
   public int getId() {
     return id;
@@ -110,7 +146,7 @@ public abstract class NamedEntity {
     }
   }
 
-  abstract protected TreeMap<Integer, WeakReference <? extends NamedEntity> > getObjectMap();
+  abstract protected Map<Integer, WeakReference <NamedEntity> > getObjectMap();
 
   protected void finalize () {
     getObjectMap().remove(id);

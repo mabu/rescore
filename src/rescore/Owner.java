@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 public class Owner extends NamedEntity {
   private static Logger logger = Logger.getLogger(Owner.class.getName());
   private static PreparedStatement selectOwner, selectAllOwners, selectAllOwnerIds, deleteOwner, updateName;
-  private static TreeMap<Integer, WeakReference<? extends NamedEntity> > owners = new TreeMap<Integer, WeakReference<? extends NamedEntity> >();
+  private static TreeMap<Integer, WeakReference<NamedEntity> > owners = new TreeMap<Integer, WeakReference<NamedEntity> >();
   private static int ownersCount = -1; // kiek savininkų yra duomenų bazėje
 
 /**
@@ -31,29 +31,25 @@ public class Owner extends NamedEntity {
   }
 
 /**
+ * Šį konstruktorių kviečia statiniai NamedEntity klasės metodai,
+ * imantys objektą iš duomenų bazės.
+ *
+ * @param id objekto ID
+ * @param resultSet skaitymui paruošta duombazės eilutė su kitais objekto
+ *                  kūrimui reikalingais laukais, kuriuos grąžina selectOwner
+ */
+  public Owner(int id, ResultSet resultSet) throws SQLException {
+    this(id, resultSet.getString(1));
+  }
+
+/**
  * Grąžina objektą savininko su nurodytu id.
  *
  * @param id savininko id
  * @return savininkas su nurodytu id
  */
   public static Owner get(int id) {
-    WeakReference<? extends NamedEntity> weakReference = owners.get(id);
-    Owner owner = null;
-    if (weakReference != null)
-      owner = (Owner)weakReference.get();
-    if (owner == null) {
-      try {
-        selectOwner.setInt(1, id);
-        ResultSet resultSet = selectOwner.executeQuery();
-        if (resultSet.next()) {
-          owner = new Owner(id, resultSet.getString(1));
-          owners.put(id, new WeakReference<Owner>(owner));
-        }
-      } catch (SQLException exception) {
-        logger.error("get SQL error: " + exception.getMessage());
-      }
-    }
-    return owner;
+    return (Owner)NamedEntity.get(id, selectOwner, owners, Owner.class);
   }
 
 /**
@@ -64,7 +60,7 @@ public class Owner extends NamedEntity {
   public static List<Owner> getAll() {
     Vector<Owner> ownerList = new Vector<Owner>();
     Owner owner;
-    WeakReference<? extends NamedEntity> weakReference;
+    WeakReference<NamedEntity> weakReference;
     try {
       if (ownersCount == -1 || owners.size() / ownersCount > LIST_RATIO) {
         ResultSet resultSet = selectAllOwners.executeQuery();
@@ -75,7 +71,7 @@ public class Owner extends NamedEntity {
             owner = (Owner)weakReference.get();
           if (owner == null) {
             owner = new Owner(resultSet.getInt(1), resultSet.getString(2));
-            owners.put(resultSet.getInt(1), new WeakReference<Owner>(owner));
+            owners.put(resultSet.getInt(1), new WeakReference<NamedEntity>(owner));
           }
           ownerList.add(owner);
         }
@@ -117,7 +113,7 @@ public class Owner extends NamedEntity {
     return remove(deleteOwner);
   }
 
-  protected TreeMap<Integer, WeakReference <? extends NamedEntity> > getObjectMap() {
+  protected TreeMap<Integer, WeakReference <NamedEntity> > getObjectMap() {
     return owners;
   }
 
