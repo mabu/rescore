@@ -4,8 +4,6 @@
  */
 package rescore;
 
-import java.lang.ref.WeakReference;
-import java.util.TreeMap;
 import java.util.List;
 import java.util.Vector;
 import java.sql.PreparedStatement;
@@ -17,8 +15,6 @@ import org.apache.log4j.Logger;
 public class Yacht extends NamedEntity {
   private static Logger logger = Logger.getLogger(Yacht.class.getName());
   private static PreparedStatement selectYacht, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors;
-  private static TreeMap<Integer, WeakReference<NamedEntity> > yachts = new TreeMap<Integer, WeakReference<NamedEntity> >();
-  private static int yachtsCount = -1; // kiek jachtų yra duomenų bazėje
   private String sailNumber;
   private YachtClass yachtClass;
   private int year, yachtClassId, captainId, ownerId;
@@ -32,7 +28,7 @@ public class Yacht extends NamedEntity {
  * get() arba getAll().
  */
   private Yacht (int id, String sailNumber, int yachtClassId, String name, int year, int captainId, int ownerId, String sponsors) {
-    this.id = id;
+    super(id);
     this.sailNumber = sailNumber;
     this.yachtClassId = yachtClassId;
     this.name = name;
@@ -55,13 +51,23 @@ public class Yacht extends NamedEntity {
   }
 
 /**
+ * Šį konstruktorių kviečia NamedEntity.getAll().
+ *
+ * @param resultSet skaitymui paruošta duombazės eilutė su visais objekto
+ *                  kūrimui reikalingais laikaus, kuriuos grąžina selectAllYachts
+ */
+  public Yacht(ResultSet resultSet) throws SQLException {
+    this(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7), resultSet.getString(8));
+  }
+
+/**
  * Grąžina jachtą pagal jos ID.
  *
  * @param id jachtos ID
  * @return jachtos objektas su duotu ID, arba null, jei tokios jachtos nėra
  */
   public static Yacht get(int id) {
-    return (Yacht)NamedEntity.get(id, selectYacht, yachts, Yacht.class);
+    return (Yacht)NamedEntity.get(id, selectYacht, Yacht.class);
   }
 
 /**
@@ -70,34 +76,7 @@ public class Yacht extends NamedEntity {
  * @return visų jachtų sąrašas ID didėjimo tvarka
  */
   public static List<Yacht> getAll() {
-    Vector<Yacht> yachtList = new Vector<Yacht>();
-    Yacht yacht;
-    WeakReference<NamedEntity> weakReference;
-    try {
-      if (yachtsCount == -1 || yachts.size() / yachtsCount > LIST_RATIO) {
-        ResultSet resultSet = selectAllYachts.executeQuery();
-        for (yachtsCount = 0; resultSet.next(); yachtsCount++) {
-          yacht = null;
-          weakReference = yachts.get(resultSet.getInt(1));
-          if (weakReference != null)
-            yacht = (Yacht)weakReference.get();
-          if (yacht == null) {
-            yacht = new Yacht(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7), resultSet.getString(8));
-            yachts.put(resultSet.getInt(1), new WeakReference<NamedEntity>(yacht));
-          }
-          yachtList.add(yacht);
-        }
-      } else {
-        ResultSet resultSet = selectAllYachtIds.executeQuery();
-        for (yachtsCount = 0; resultSet.next(); yachtsCount++) {
-          yachtList.add(get(resultSet.getInt(1)));
-        }
-      }
-    } catch (SQLException exception) {
-      logger.error("getAll SQL error: " + exception.getMessage());
-      yachtList = null;
-    }
-    return yachtList;
+    return (List<Yacht>)NamedEntity.getAll(selectAllYachts, selectAllYachtIds, Yacht.class);
   }
 
 /**
@@ -172,7 +151,6 @@ public class Yacht extends NamedEntity {
         insertYacht.setString(7, sponsors);
       if (insertYacht.executeUpdate() == 1) {
         yacht = new Yacht(getLastInsertId(), sailNumber, yachtClass.getId(), name, year, captainId, ownerId, sponsors);
-        yachts.put(yacht.getId(), new WeakReference<NamedEntity>(yacht));
       } else {
         // TODO
       }
@@ -364,10 +342,6 @@ public class Yacht extends NamedEntity {
 
   public String getSponsors() {
     return sponsors;
-  }
-
-  protected TreeMap<Integer, WeakReference <NamedEntity> > getObjectMap() {
-    return yachts;
   }
 
 }

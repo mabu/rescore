@@ -4,8 +4,6 @@
  */
 package rescore;
 
-import java.lang.ref.WeakReference;
-import java.util.TreeMap;
 import java.util.List;
 import java.util.Vector;
 import java.sql.PreparedStatement;
@@ -17,8 +15,6 @@ import org.apache.log4j.Logger;
 public class Captain extends NamedEntity {
   private static Logger logger = Logger.getLogger(Captain.class.getName());
   private static PreparedStatement selectCaptain, selectAllCaptains, selectAllCaptainIds, deleteCaptain, updateName;
-  private static TreeMap<Integer, WeakReference<NamedEntity> > captains = new TreeMap<Integer, WeakReference<NamedEntity> >();
-  private static int captainsCount = -1; // kiek kapitonų yra duomenų bazėje
 
 /**
  * Konstruktorius.
@@ -26,7 +22,7 @@ public class Captain extends NamedEntity {
  * get() arba getAll().
  */
   private Captain(int id, String name) {
-    this.id = id;
+    super(id);
     this.name = name;
   }
 
@@ -43,13 +39,23 @@ public class Captain extends NamedEntity {
   }
 
 /**
+ * Šį konstruktorių kviečia NamedEntity.getAll().
+ *
+ * @param resultSet skaitymui paruošta duombazės eilutė su visais objekto
+ *                  kūrimui reikalingais laikaus, kuriuos grąžina selectAllCaptains
+ */
+  public Captain(ResultSet resultSet) throws SQLException {
+    this(resultSet.getInt(1), resultSet.getString(2));
+  }
+
+/**
  * Grąžina objektą kapitono su nurodytu id.
  *
  * @param id kapitono id
  * @return kapitonas su nurodytu id
  */
   public static Captain get(int id) {
-    return (Captain)NamedEntity.get(id, selectCaptain, captains, Captain.class);
+    return (Captain)NamedEntity.get(id, selectCaptain, Captain.class);
   }
 
 /**
@@ -58,34 +64,7 @@ public class Captain extends NamedEntity {
  * @return visų kapitonų sąrašas id didėjimo tvarka
  */
   public static List<Captain> getAll() {
-    Vector<Captain> captainList = new Vector<Captain>();
-    Captain captain;
-    WeakReference<NamedEntity> weakReference;
-    try {
-      if (captainsCount == -1 || captains.size() / captainsCount > LIST_RATIO) {
-        ResultSet resultSet = selectAllCaptains.executeQuery();
-        for (captainsCount = 0; resultSet.next(); captainsCount++) {
-          captain = null;
-          weakReference = captains.get(resultSet.getInt(1));
-          if (weakReference != null)
-            captain = (Captain)weakReference.get();
-          if (captain == null) {
-            captain = new Captain(resultSet.getInt(1), resultSet.getString(2));
-            captains.put(resultSet.getInt(1), new WeakReference<NamedEntity>(captain));
-          }
-          captainList.add(captain);
-        }
-      } else {
-        ResultSet resultSet = selectAllCaptainIds.executeQuery();
-        for (captainsCount = 0; resultSet.next(); captainsCount++) {
-          captainList.add(get(resultSet.getInt(1)));
-        }
-      }
-    } catch (SQLException exception) {
-      logger.error("getAll SQL error: " + exception.getMessage());
-      captainList = null;
-    }
-    return captainList;
+    return (List<Captain>)NamedEntity.getAll(selectAllCaptains, selectAllCaptainIds, Captain.class);
   }
 
 /**
@@ -111,10 +90,6 @@ public class Captain extends NamedEntity {
 
   public boolean remove() {
     return remove(deleteCaptain);
-  }
-
-  protected TreeMap<Integer, WeakReference <NamedEntity> > getObjectMap() {
-    return captains;
   }
 
 }
