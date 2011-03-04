@@ -8,3 +8,6 @@ make
 
 Paleidimas:
 make run
+
+Duombazės administravimas:
+java -cp jars/h2*.jar org.h2.tools.Server

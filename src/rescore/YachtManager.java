@@ -59,11 +59,15 @@ public class YachtManager {
           }
           printStream.println("Pagaminimo metai (jeigu nežinomi, įveskite 0):");
           int year = scanInt();
-          printStream.println("Pasirinkite jachtos kapitoną.");
-          Captain captain = chooseCaptain(Captain.getAll());
-          printStream.println("Pasirinkite jachtos savininką.");
-          Owner owner = chooseOwner(Owner.getAll());
           scanner.nextLine();
+          printStream.println("Kapitonas:");
+          String captain = scanner.nextLine();
+          if (captain.trim().isEmpty())
+            captain = null;
+          printStream.println("Savininkas:");
+          String owner = scanner.nextLine();
+          if (owner.trim().isEmpty())
+            owner = null;
           printStream.println("Rėmėjai:");
           String sponsors = scanner.nextLine();
           if (sponsors.trim().isEmpty())
@@ -149,54 +153,6 @@ public class YachtManager {
       return null;
     }
 
-  private Captain chooseCaptain(List<Captain> list) {
-    int traversed = 0, id = 0, size = list.size();
-    if (list.isEmpty())
-      printStream.println("Sąrašas tuščias");
-    for (Captain captain : list) {
-      printStream.println(captain.getId() + ". " + captain.getName());
-      traversed++;
-      if (traversed % LIST_ITEMS_AT_ONCE == 0 && traversed != list.size()) {
-        printStream.println("Rodomi pirmi " + traversed + " iš " + size + " pasirinkimų. Įveskite pasirinkimo ID, arba 0, jei norite matyti sąrašo tęsinį. Norėdami nieko nepasirinkti, įveskite neigiamą skaičių.");
-        id = scanInt();
-        if (id != 0)
-          break;
-      }
-    }
-    if (id == 0) {
-      printStream.println("Įveskite pasirinkimo ID. Norėdami nieko nepasirinkti, įveskite neteigiamą skaičių.");
-      id = scanInt();
-    }
-    if (id > 0)
-      return Captain.get(id);
-    else
-      return null;
-    }
-
-  private Owner chooseOwner(List<Owner> list) {
-    int traversed = 0, id = 0, size = list.size();
-    if (list.isEmpty())
-      printStream.println("Sąrašas tuščias");
-    for (Owner owner : list) {
-      printStream.println(owner.getId() + ". " + owner.getName());
-      traversed++;
-      if (traversed % LIST_ITEMS_AT_ONCE == 0 && traversed != list.size()) {
-        printStream.println("Rodomi pirmi " + traversed + " iš " + size + " pasirinkimų. Įveskite pasirinkimo ID, arba 0, jei norite matyti sąrašo tęsinį. Norėdami nieko nepasirinkti, įveskite neigiamą skaičių.");
-        id = scanInt();
-        if (id != 0)
-          break;
-      }
-    }
-    if (id == 0) {
-      printStream.println("Įveskite pasirinkimo ID. Norėdami nieko nepasirinkti, įveskite neteigiamą skaičių.");
-      id = scanInt();
-    }
-    if (id > 0)
-      return Owner.get(id);
-    else
-      return null;
-    }
-
   private void processYacht(Yacht yacht) {
     int command = 0;
     final int RETURN_COMMAND_NUMBER = 9;
@@ -214,11 +170,11 @@ public class YachtManager {
       if (yacht.getCaptain() == null)
         printStream.println("Kapitono nėra");
       else
-        printStream.println("Kapitonas: " + yacht.getCaptain().getName());
+        printStream.println("Kapitonas: " + yacht.getCaptain());
       if (yacht.getOwner() == null)
         printStream.println("Savininkas nežinomas");
       else
-        printStream.println("Savininkas: " + yacht.getOwner().getName());
+        printStream.println("Savininkas: " + yacht.getOwner());
       if (yacht.getSponsors() == null)
         printStream.println("Rėmėjų nėra");
       else
@@ -267,18 +223,24 @@ public class YachtManager {
             printStream.println("Jachtos pagaminimo metai nepakeisti");
           break;
         case 5:
-          if (yacht.getCaptain() != null)
-            printStream.println("Anksčiau jachtos kapitonas buvo " + yacht.getCaptain().getName() + ". Pasirinkite naują kapitoną.");
-          Captain captain = chooseCaptain(Captain.getAll());
-          if (!yacht.setCaptain(captain))
+          scanner.nextLine();
+          printStream.println("Įveskite naują jachtos kapitoną" + (yacht.getCaptain() == null ? "" : " (buvo " + yacht.getCaptain() + ")") + ":");
+          String captain = scanner.nextLine();
+          if (captain.isEmpty())
+            captain = null;
+          if (!yacht.setCaptain(captain)) {
             printStream.println("Jachtos kapitonas nepakeistas");
+          }
           break;
         case 6:
-          if (yacht.getOwner() != null)
-            printStream.println("Anksčiau jachtos savininkas buvo " + yacht.getOwner().getName() + ". Pasirinkite naują savininką.");
-          Owner owner = chooseOwner(Owner.getAll());
-          if (!yacht.setOwner(owner))
+          scanner.nextLine();
+          printStream.println("Įveskite naują jachtos savininką" + (yacht.getOwner() == null ? "" : " (buvo " + yacht.getOwner() + ")") + ":");
+          String owner = scanner.nextLine();
+          if (owner.isEmpty())
+            owner = null;
+          if (!yacht.setOwner(owner)) {
             printStream.println("Jachtos savininkas nepakeistas");
+          }
           break;
         case 7:
           scanner.nextLine();

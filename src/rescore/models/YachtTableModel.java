@@ -20,7 +20,7 @@ public class YachtTableModel extends AbstractTableModel {
         Object[][] data = new Object[yachts.size()][];
         int i = 0;
         for(Yacht yacht : yachts){
-            data[i] = new Object[] { yacht.getSailNumber(), yacht.getYear(), (yacht.getCaptain() == null ? null : yacht.getCaptain().getName()), (yacht.getOwner() == null ? null : yacht.getOwner().getName()) };
+            data[i] = new Object[] { yacht.getSailNumber(), yacht.getYear(), yacht.getCaptain(), yacht.getOwner() };
             i++;
         }
         return data;

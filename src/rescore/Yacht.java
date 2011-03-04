@@ -14,27 +14,25 @@ import org.apache.log4j.Logger;
 
 public class Yacht extends NamedEntity {
   private static Logger logger = Logger.getLogger(Yacht.class.getName());
-  private static PreparedStatement selectYacht, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors;
+  private static PreparedStatement selectYacht, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors, selectCaptains, selectOwners;
   private String sailNumber;
   private YachtClass yachtClass;
-  private int year, yachtClassId, captainId, ownerId;
-  private Captain captain;
-  private Owner owner;
-  private String sponsors;
+  private int year, yachtClassId;
+  private String sponsors, captain, owner;
 
 /**
  * Konstruktorius.
  * Naudojamas tik šioje klasėje. Norint gauti jachtos objektą iš kitur, naudoti
  * get() arba getAll().
  */
-  private Yacht (int id, String sailNumber, int yachtClassId, String name, int year, int captainId, int ownerId, String sponsors) {
+  private Yacht (int id, String sailNumber, int yachtClassId, String name, int year, String captain, String owner, String sponsors) {
     super(id);
     this.sailNumber = sailNumber;
     this.yachtClassId = yachtClassId;
     this.name = name;
     this.year = year;
-    this.captainId = captainId;
-    this.ownerId = ownerId;
+    this.captain = captain;
+    this.owner = owner;
     this.sponsors = sponsors;
   }
 
@@ -47,7 +45,7 @@ public class Yacht extends NamedEntity {
  *                  kūrimui reikalingais laukais, kuriuos grąžina selectYacht
  */
   public Yacht(int id, ResultSet resultSet) throws SQLException {
-    this(id, resultSet.getString(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getInt(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getString(7));
+    this(id, resultSet.getString(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getInt(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
   }
 
 /**
@@ -57,7 +55,7 @@ public class Yacht extends NamedEntity {
  *                  kūrimui reikalingais laikaus, kuriuos grąžina selectAllYachts
  */
   public Yacht(ResultSet resultSet) throws SQLException {
-    this(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getInt(6), resultSet.getInt(7), resultSet.getString(8));
+    this(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8));
   }
 
 /**
@@ -68,6 +66,38 @@ public class Yacht extends NamedEntity {
  */
   public static Yacht get(int id) {
     return (Yacht)NamedEntity.get(id, selectYacht, Yacht.class);
+  }
+
+/**
+ * Grąžina visus dabartinius jachtų kapitonus.
+ */
+  public static List<String> getAllCaptains() {
+    Vector<String> captains = new Vector();
+    try {
+      ResultSet resultSet = selectCaptains.executeQuery();
+      while (resultSet.next()) {
+        captains.add(resultSet.getString(1));
+      }
+    } catch (SQLException exception) {
+      logger.error("getAllCaptains SQL error: " + exception.getMessage());
+    }
+    return captains;
+  }
+
+/**
+ * Grąžina visus dabartinius jachtų savininkus.
+ */
+  public static List<String> getAllOwners() {
+    Vector<String> owners = new Vector();
+    try {
+      ResultSet resultSet = selectOwners.executeQuery();
+      while (resultSet.next()) {
+        owners.add(resultSet.getString(1));
+      }
+    } catch (SQLException exception) {
+      logger.error("getAllCaptains SQL error: " + exception.getMessage());
+    }
+    return owners;
   }
 
 /**
@@ -98,6 +128,8 @@ public class Yacht extends NamedEntity {
       updateCaptain = connection.prepareStatement("UPDATE Jachtos SET Kapitonas = ? WHERE Id = ?");
       updateOwner = connection.prepareStatement("UPDATE Jachtos SET Savininkas = ? WHERE Id = ?");
       updateSponsors = connection.prepareStatement("UPDATE Jachtos SET Rėmėjai = ? WHERE Id = ?");
+      selectCaptains = connection.prepareStatement("SELECT DISTINCT Kapitonas FROM Jachtos");
+      selectOwners = connection.prepareStatement("SELECT DISTINCT Savininkas FROM Jachtos");
     } catch (SQLException exception) {
       logger.error("prepareStatements SQL error: " + exception.getMessage());
     }
@@ -117,10 +149,9 @@ public class Yacht extends NamedEntity {
  * @return jachta, jeigu sukūrimas pavyko, arba null, jei jachta su tokiu burės
  *         numeriu jau egzistavo arba įvyko kita klaida
  */
-  public static Yacht create(String sailNumber, YachtClass yachtClass, String name, int year, Captain captain, Owner owner, String sponsors) {
+  public static Yacht create(String sailNumber, YachtClass yachtClass, String name, int year, String captain, String owner, String sponsors) {
     Yacht yacht = null;
     try {
-      int captainId, ownerId;
       insertYacht.setString(1, sailNumber);
       insertYacht.setInt(2, yachtClass.getId());
       if (name == null)
@@ -131,26 +162,20 @@ public class Yacht extends NamedEntity {
         insertYacht.setNull(4, java.sql.Types.INTEGER);
       else
         insertYacht.setInt(4, year);
-      if (captain == null) {
-        insertYacht.setNull(5, java.sql.Types.INTEGER);
-        captainId = 0;
-      } else {
-        captainId = captain.getId();
-        insertYacht.setInt(5, captainId);
-      }
-      if (owner == null) {
-        insertYacht.setNull(6, java.sql.Types.INTEGER);
-        ownerId = 0;
-      } else {
-        ownerId = owner.getId();
-        insertYacht.setInt(6, ownerId);
-      }
-      if (name == null)
+      if (captain == null)
+        insertYacht.setNull(5, java.sql.Types.VARCHAR);
+      else
+        insertYacht.setString(5, captain);
+      if (owner == null)
+        insertYacht.setNull(6, java.sql.Types.VARCHAR);
+      else
+        insertYacht.setString(6, owner);
+      if (sponsors == null)
         insertYacht.setNull(7, java.sql.Types.VARCHAR);
       else
         insertYacht.setString(7, sponsors);
       if (insertYacht.executeUpdate() == 1) {
-        yacht = new Yacht(getLastInsertId(), sailNumber, yachtClass.getId(), name, year, captainId, ownerId, sponsors);
+        yacht = new Yacht(getLastInsertId(), sailNumber, yachtClass.getId(), name, year, captain, owner, sponsors);
       } else {
         // TODO
       }
@@ -238,58 +263,47 @@ public class Yacht extends NamedEntity {
     return ret;
   }
 
-  public boolean setCaptain(Captain captain) {
-    boolean ret = false;
+  public boolean setCaptain(String captain) {
     try {
       if (captain == null)
-        updateCaptain.setNull(1, java.sql.Types.INTEGER);
+        updateCaptain.setNull(1, java.sql.Types.VARCHAR);
       else
-        updateCaptain.setInt(1, captain.getId());
+        updateCaptain.setString(1, captain);
       updateCaptain.setInt(2, id);
       int rowsAffected = updateCaptain.executeUpdate();
       if (rowsAffected == 1) {
         this.captain = captain;
-        if (captain == null)
-          this.captainId = 0;
-        else
-          this.captainId = captain.getId();
-        ret = true;
+        return true;
       } else {
         logger.warn("Strange setCaptain updated database rows count: " + rowsAffected);
       }
     } catch (SQLException exception) {
       logger.error("setCaptain SQL error: " + exception.getMessage());
     }
-    return ret;
+    return false;
   }
 
-  public boolean setOwner(Owner owner) {
-    boolean ret = false;
+  public boolean setOwner(String owner) {
     try {
       if (owner == null)
-        updateOwner.setNull(1, java.sql.Types.INTEGER);
+        updateOwner.setNull(1, java.sql.Types.VARCHAR);
       else
-        updateOwner.setInt(1, owner.getId());
+        updateOwner.setString(1, owner);
       updateOwner.setInt(2, id);
       int rowsAffected = updateOwner.executeUpdate();
       if (rowsAffected == 1) {
         this.owner = owner;
-        if (owner == null)
-          this.ownerId = 0;
-        else
-          this.ownerId = owner.getId();
-        ret = true;
+        return true;
       } else {
         logger.warn("Strange setOwner updated database rows count: " + rowsAffected);
       }
     } catch (SQLException exception) {
       logger.error("setOwner SQL error: " + exception.getMessage());
     }
-    return ret;
+    return false;
   }
 
   public boolean setSponsors(String sponsors) {
-    boolean ret = false;
     try {
       if (sponsors == null)
         updateSponsors.setNull(1, java.sql.Types.VARCHAR);
@@ -299,14 +313,14 @@ public class Yacht extends NamedEntity {
       int rowsAffected = updateSponsors.executeUpdate();
       if (rowsAffected == 1) {
         this.sponsors = sponsors;
-        ret = true;
+        return true;
       } else {
         logger.warn("Strange setSponsors updated database rows count: " + rowsAffected);
       }
     } catch (SQLException exception) {
       logger.error("setSponsors SQL error: " + exception.getMessage());
     }
-    return ret;
+    return false;
   }
 
   public String getSailNumber() {
@@ -328,15 +342,11 @@ public class Yacht extends NamedEntity {
     return year;
   }
 
-  public Captain getCaptain() {
-    if (captain == null && captainId != 0)
-      captain = Captain.get(captainId);
+  public String getCaptain() {
     return captain;
   }
 
-  public Owner getOwner() {
-    if (owner == null && ownerId != 0)
-      owner = Owner.get(ownerId);
+  public String getOwner() {
     return owner;
   }
 

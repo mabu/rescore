@@ -1,16 +1,7 @@
--- Galbūt kapitonams ir savininkams ir neverta atskirų lentelių daryt – kaip rėmėjams...
 -- TODO: išversti į anglų kalbą
 -- TODO: reikia trigerio, užtikrinančio, kad etape plaukianti jachta yra atitinkamos grupės dalyvė
 -- TODO: reikai trigerio arba išorinio rakto, užtikrinančio, kad jachta regatoje dalyvauja tik vienoje grupėje
 
-CREATE TABLE Kapitonai (
-  Id INTEGER IDENTITY,
-  Vardas VARCHAR(64)
-  );
-CREATE TABLE Savininkai (
-  Id INTEGER IDENTITY,
-  Vardas VARCHAR(64)
-  );
 CREATE TABLE Modeliai (
   Id INTEGER IDENTITY,
   Pavadinimas VARCHAR(32) NOT NULL CHECK (length(trim(both from Pavadinimas)) > 0),
@@ -29,8 +20,8 @@ CREATE TABLE Jachtos (
   BurėsNumeris VARCHAR(32) NOT NULL UNIQUE CHECK (length(trim(both from BurėsNumeris)) > 0),
   Modelis INTEGER NOT NULL REFERENCES Modeliai,
   PagaminimoMetai INTEGER CHECK (PagaminimoMetai BETWEEN 1500 AND EXTRACT(YEAR FROM CURRENT_DATE) + 1),
-  Kapitonas INTEGER REFERENCES Kapitonai,
-  Savininkas INTEGER REFERENCES Savininkai,
+  Kapitonas VARCHAR(64),
+  Savininkas VARCHAR(64),
   Pavadinimas VARCHAR(64) NOT NULL UNIQUE CHECK (length(trim(both from Pavadinimas)) > 0), -- FIXME: ar tinka UNIQUE?
   Rėmėjai VARCHAR(64),
   Pastabos VARCHAR(64)
@@ -60,8 +51,8 @@ CREATE TABLE Etapai (
 CREATE TABLE Dalyviai (
   Jachta INTEGER NOT NULL REFERENCES Jachtos,
   Grupė INTEGER NOT NULL REFERENCES Grupės ON DELETE CASCADE,
-  Kapitonas INTEGER REFERENCES Kapitonai,
-  Savininkas INTEGER REFERENCES Savininkai,
+  Kapitonas VARCHAR(64),
+  Savininkas  VARCHAR(64),
   Rėmėjai VARCHAR(64),
   PRIMARY KEY(Jachta, Grupė) -- FIXME: neleisti dalyvauti toje pačioje regatoje keliose grupėse (pridėti išorinį raktą arba trigerį)
   );

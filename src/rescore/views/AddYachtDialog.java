@@ -7,8 +7,6 @@ import java.util.List;
 
 import javax.swing.JDialog;
 
-import rescore.Captain;
-import rescore.Owner;
 import rescore.Yacht;
 import rescore.YachtClass;
 import rescore.models.ComboModel;
@@ -90,10 +88,10 @@ public class AddYachtDialog extends JDialog implements ActionListener {
          comboModel1 = new ComboModel(getYachtClasses());
          jComboBox1.setModel(comboModel1);
          
-         comboModel2 = new ComboModel(getCaptains());
+         comboModel2 = new ComboModel(Yacht.getAllCaptains());
          jComboBox2.setModel(comboModel2);
          
-         comboModel3 = new ComboModel(getOwners());
+         comboModel3 = new ComboModel(Yacht.getAllOwners());
          jComboBox3.setModel(comboModel3);
 
          jButton1.setText("Save");
@@ -204,7 +202,7 @@ public class AddYachtDialog extends JDialog implements ActionListener {
 	/** performed when "Save" button is clicked */
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
 //        Yacht.create(sailNumber, yachtClass, name, year, captain, owner, sponsors)
-        Yacht.create(getjTextField2().getText(), YachtClass.get(1), getjTextField1().getText(), Integer.valueOf(getjTextField3().getText()), Captain.get(1), Owner.get(1), getjTextField4().getText());
+        Yacht.create(getjTextField2().getText(), YachtClass.get(1), getjTextField1().getText(), Integer.valueOf(getjTextField3().getText()), "Captain", "Owner", getjTextField4().getText());
         setVisible(false);
     }
     
@@ -224,24 +222,6 @@ public class AddYachtDialog extends JDialog implements ActionListener {
 			types.add(yachtType.getName());
 		}
 		return types;
-	}
-	
-	private static List getCaptains() {
-		List<Captain> captains = Captain.getAll();
-		List captains2 = new ArrayList();
-		for(Captain captain : captains) {
-			captains2.add(captain.getName());
-		}
-		return captains2;
-	}
-	
-	private static List getOwners() {
-		List<Owner> owners = Owner.getAll();
-		List owners2 = new ArrayList();
-		for(Owner owner : owners) {
-			owners2.add(owner.getName());
-		}
-		return owners2;
 	}
 	
 }
