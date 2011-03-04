@@ -1,5 +1,7 @@
 PACKAGES = \
 	rescore \
+	rescore.models \
+	rescore.views \
 
 NODOC_PACKAGES = \
 
