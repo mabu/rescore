@@ -11,6 +11,7 @@ import java.util.Scanner;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import org.apache.log4j.Logger;
+import rescore.views.*;
 
 public class YachtManager {
   private static Logger logger = Logger.getLogger(YachtManager.class.getName());
@@ -25,6 +26,10 @@ public class YachtManager {
   }
 
   public void start() {
+	  
+    YachtManagerView mainWindow = new YachtManagerView();
+    mainWindow.setVisible(true);
+
     printStream.println("Jachtų duomenų tvarkymas");
     printStream.println("Meniu pasirinkimus atlikite įvesdami skaičių.");
     int command = -1;

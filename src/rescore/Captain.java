@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 public class Captain extends NamedEntity {
   private static Logger logger = Logger.getLogger(Captain.class.getName());
   private static PreparedStatement selectCaptain, selectAllCaptains, selectAllCaptainIds, deleteCaptain, updateName;
+  private String name;
 
 /**
  * Konstruktorius.
@@ -88,6 +89,10 @@ public class Captain extends NamedEntity {
     return setName(name, updateName);
   }
 
+  public String getName() {
+		return name;
+	}
+  
   public boolean remove() {
     return remove(deleteCaptain);
   }
