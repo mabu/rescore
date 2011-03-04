@@ -1,0 +1,4 @@
+bin/
+.settings*
+rescore.log
+*.sw*

@@ -88,6 +88,10 @@ public class Owner extends NamedEntity {
     return setName(name, updateName);
   }
 
+  public String getName(){
+	  return name;
+  }
+  
   public boolean remove() {
     return remove(deleteOwner);
   }
