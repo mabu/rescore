@@ -15,8 +15,6 @@ import org.apache.log4j.Logger;
 public class YachtClass extends NamedEntity {
   private static Logger logger = Logger.getLogger(YachtClass.class.getName());
   private static PreparedStatement selectYachtClass, selectAllYachtClasses, selectAllYachtClassIds, updateName, deleteYachtClass;
-  
-  private String name;
 
 /**
  * Konstruktorius.
@@ -27,7 +25,6 @@ public class YachtClass extends NamedEntity {
     super(id);
     this.name = name;
   }
-
 
 /**
  * Šį konstruktorių kviečia statiniai NamedEntity klasės metodai,
@@ -91,11 +88,6 @@ public class YachtClass extends NamedEntity {
     return setName(name, updateName);
   }
 
-  public String getName() {
-		return name;
-	}
-
-  
   public boolean remove() {
     return remove(deleteYachtClass);
   }

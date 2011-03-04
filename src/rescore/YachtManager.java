@@ -11,7 +11,7 @@ import java.util.Scanner;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import org.apache.log4j.Logger;
-import rescore.views.*;
+import rescore.views.YachtManagerView;
 
 public class YachtManager {
   private static Logger logger = Logger.getLogger(YachtManager.class.getName());
