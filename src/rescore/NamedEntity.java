@@ -26,7 +26,7 @@ public abstract class NamedEntity {
   // elementą) arba numanomo skaičiaus nėra, tada duombazės užklausia visų įrašų;
   // priešingu atveju – visų ID, pagal kuriuos gauna trūkstamas esybes po vieną
   protected int id;
-  protected String name;
+  protected String name, notes;
 
   // objectMaps inicializacija
   static {
@@ -138,6 +138,10 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
     return name;
   }
 
+  public String getNotes() {
+    return notes;
+  }
+
   protected boolean setName(String name, PreparedStatement updateName) {
     boolean ret = false;
     try {
@@ -160,6 +164,29 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
   }
 
   abstract public boolean setName(String name);
+
+  protected boolean setNotes(String notes, PreparedStatement updateNotes) {
+    boolean ret = false;
+    try {
+      if (notes == null)
+        updateNotes.setNull(1, java.sql.Types.VARCHAR);
+      else
+        updateNotes.setString(1, notes);
+      updateNotes.setInt(2, id);
+      int rowsAffected = updateNotes.executeUpdate();
+      if (rowsAffected == 1) {
+        this.notes = notes;
+        ret = true;
+      } else {
+        logger.warn("Strange setNotes updated database rows count: " + rowsAffected);
+      }
+    } catch (SQLException exception) {
+      logger.error("setNotes SQL error: " + exception.getMessage());
+    }
+    return ret;
+  }
+
+  abstract public boolean setNotes(String notes);
 
   /**
    * Panaikina esybę iš duomenų bazės.

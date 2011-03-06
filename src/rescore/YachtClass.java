@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 
 public class YachtClass extends NamedEntity {
   private static Logger logger = Logger.getLogger(YachtClass.class.getName());
-  private static PreparedStatement selectYachtClass, selectAllYachtClasses, selectAllYachtClassIds, updateName, deleteYachtClass;
+  private static PreparedStatement selectYachtClass, selectAllYachtClasses, selectAllYachtClassIds, updateName, updateNotes, deleteYachtClass;
 
 /**
  * Konstruktorius.
@@ -78,6 +78,7 @@ public class YachtClass extends NamedEntity {
       selectAllYachtClasses = connection.prepareStatement("SELECT Id, Pavadinimas FROM Modeliai ORDER BY Id");
       selectAllYachtClassIds = connection.prepareStatement("SELECT Id FROM Modeliai ORDER BY Id");
       updateName = connection.prepareStatement("UPDATE Modeliai SET Pavadinimas = ? WHERE Id = ?");
+      updateNotes = connection.prepareStatement("UPDATE Modeliai SET Pastabos = ? WHERE Id = ?");
       deleteYachtClass = connection.prepareStatement("DELETE FROM Modeliai WHERE Id = ?");
     } catch (SQLException exception) {
       logger.error("prepareStatements SQL error: " + exception.getMessage());
@@ -86,6 +87,10 @@ public class YachtClass extends NamedEntity {
 
   public boolean setName(String name) {
     return setName(name, updateName);
+  }
+
+  public boolean setNotes(String notes) {
+    return setNotes(notes, updateNotes);
   }
 
   public boolean remove() {

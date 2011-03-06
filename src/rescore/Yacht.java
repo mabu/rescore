@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 
 public class Yacht extends NamedEntity {
   private static Logger logger = Logger.getLogger(Yacht.class.getName());
-  private static PreparedStatement selectYacht, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateYear, updateCaptain, updateOwner, updateSponsors, selectCaptains, selectOwners;
+  private static PreparedStatement selectYacht, selectAllYachts, selectAllYachtIds, insertYacht, deleteYacht, updateSailNumber, updateYachtClass, updateName, updateNotes, updateYear, updateCaptain, updateOwner, updateSponsors, selectCaptains, selectOwners;
   private String sailNumber;
   private YachtClass yachtClass;
   private int year, yachtClassId;
@@ -124,6 +124,7 @@ public class Yacht extends NamedEntity {
       updateSailNumber = connection.prepareStatement("UPDATE Jachtos SET BurėsNumeris = ? WHERE Id = ?");
       updateYachtClass = connection.prepareStatement("UPDATE Jachtos SET Modelis = ? WHERE Id = ?");
       updateName = connection.prepareStatement("UPDATE Jachtos SET Pavadinimas = ? WHERE Id = ?");
+      updateNotes = connection.prepareStatement("UPDATE Jachtos SET Pastabos = ? WHERE Id = ?");
       updateYear = connection.prepareStatement("UPDATE Jachtos SET PagaminimoMetai = ? WHERE Id = ?");
       updateCaptain = connection.prepareStatement("UPDATE Jachtos SET Kapitonas = ? WHERE Id = ?");
       updateOwner = connection.prepareStatement("UPDATE Jachtos SET Savininkas = ? WHERE Id = ?");
@@ -240,6 +241,10 @@ public class Yacht extends NamedEntity {
 
   public boolean setName(String name) {
     return setName(name, updateName);
+  }
+
+  public boolean setNotes(String notes) {
+    return setNotes(notes, updateNotes);
   }
 
   public boolean setYear(int year) {
