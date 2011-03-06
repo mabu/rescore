@@ -21,9 +21,8 @@ public class YachtClass extends NamedEntity {
  * Naudojamas tik šioje klasėje. Norint gauti modelio objektą iš kitur, naudoti
  * get() arba getAll().
  */
-  private YachtClass(int id, String name) {
-    super(id);
-    this.name = name;
+  private YachtClass(int id, String name, String notes) {
+    super(id, name, notes);
   }
 
 /**
@@ -35,17 +34,17 @@ public class YachtClass extends NamedEntity {
  *                  kūrimui reikalingais laukais, kuriuos grąžina selectYachtClass
  */
   public YachtClass(int id, ResultSet resultSet) throws SQLException {
-    this(id, resultSet.getString(1));
+    this(id, resultSet.getString(1), resultSet.getString(2));
   }
 
 /**
  * Šį konstruktorių kviečia NamedEntity.getAll().
  *
  * @param resultSet skaitymui paruošta duombazės eilutė su visais objekto
- *                  kūrimui reikalingais laikaus, kuriuos grąžina selectAllYachtClasses
+ *                  kūrimui reikalingais laukais, kuriuos grąžina selectAllYachtClasses
  */
   public YachtClass(ResultSet resultSet) throws SQLException {
-    this(resultSet.getInt(1), resultSet.getString(2));
+    this(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3));
   }
 
 /**
@@ -74,8 +73,8 @@ public class YachtClass extends NamedEntity {
  */
   static void prepareStatements(Connection connection) {
     try {
-      selectYachtClass = connection.prepareStatement("SELECT Pavadinimas FROM Modeliai WHERE Id = ?");
-      selectAllYachtClasses = connection.prepareStatement("SELECT Id, Pavadinimas FROM Modeliai ORDER BY Id");
+      selectYachtClass = connection.prepareStatement("SELECT Pavadinimas, Pastabos FROM Modeliai WHERE Id = ?");
+      selectAllYachtClasses = connection.prepareStatement("SELECT Id, Pavadinimas, Pastabos FROM Modeliai ORDER BY Id");
       selectAllYachtClassIds = connection.prepareStatement("SELECT Id FROM Modeliai ORDER BY Id");
       updateName = connection.prepareStatement("UPDATE Modeliai SET Pavadinimas = ? WHERE Id = ?");
       updateNotes = connection.prepareStatement("UPDATE Modeliai SET Pastabos = ? WHERE Id = ?");

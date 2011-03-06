@@ -39,9 +39,13 @@ public abstract class NamedEntity {
  * Šį konstruktorių kviečia paveldinčios klasės.
  *
  * @param id esybės id
+ * @param name esybės vardas/pavadinimas
+ * @param notes pastabos
  */
-  protected NamedEntity(int id) {
+  protected NamedEntity(int id, String name, String notes) {
     this.id = id;
+    this.name = name;
+    this.notes = notes;
     objectMaps.get(this.getClass()).put(id, new WeakReference<NamedEntity>(this));
   }
 

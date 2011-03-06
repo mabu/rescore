@@ -25,11 +25,10 @@ public class Yacht extends NamedEntity {
  * Naudojamas tik šioje klasėje. Norint gauti jachtos objektą iš kitur, naudoti
  * get() arba getAll().
  */
-  private Yacht (int id, String sailNumber, int yachtClassId, String name, int year, String captain, String owner, String sponsors) {
-    super(id);
+  private Yacht (int id, String sailNumber, int yachtClassId, String name, int year, String captain, String owner, String sponsors, String notes) {
+    super(id, name, notes);
     this.sailNumber = sailNumber;
     this.yachtClassId = yachtClassId;
-    this.name = name;
     this.year = year;
     this.captain = captain;
     this.owner = owner;
@@ -45,17 +44,17 @@ public class Yacht extends NamedEntity {
  *                  kūrimui reikalingais laukais, kuriuos grąžina selectYacht
  */
   public Yacht(int id, ResultSet resultSet) throws SQLException {
-    this(id, resultSet.getString(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getInt(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7));
+    this(id, resultSet.getString(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getInt(4), resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8));
   }
 
 /**
  * Šį konstruktorių kviečia NamedEntity.getAll().
  *
  * @param resultSet skaitymui paruošta duombazės eilutė su visais objekto
- *                  kūrimui reikalingais laikaus, kuriuos grąžina selectAllYachts
+ *                  kūrimui reikalingais laukais, kuriuos grąžina selectAllYachts
  */
   public Yacht(ResultSet resultSet) throws SQLException {
-    this(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8));
+    this(resultSet.getInt(1), resultSet.getString(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getInt(5), resultSet.getString(6), resultSet.getString(7), resultSet.getString(8), resultSet.getString(9));
   }
 
 /**
@@ -116,10 +115,10 @@ public class Yacht extends NamedEntity {
  */
   static void prepareStatements(Connection connection) {
     try {
-      selectYacht = connection.prepareStatement("SELECT BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai FROM Jachtos WHERE Id = ?");
-      selectAllYachts = connection.prepareStatement("SELECT Id, BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai FROM Jachtos ORDER BY Id");
+      selectYacht = connection.prepareStatement("SELECT BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai, Pastabos FROM Jachtos WHERE Id = ?");
+      selectAllYachts = connection.prepareStatement("SELECT Id, BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai, Pastabos FROM Jachtos ORDER BY Id");
       selectAllYachtIds = connection.prepareStatement("SELECT Id FROM Jachtos ORDER BY Id");
-      insertYacht = connection.prepareStatement("INSERT INTO Jachtos (BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai) VALUES(?, ?, ?, ?, ?, ?, ?)");
+      insertYacht = connection.prepareStatement("INSERT INTO Jachtos (BurėsNumeris, Modelis, Pavadinimas, PagaminimoMetai, Kapitonas, Savininkas, Rėmėjai, Pastabos) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
       deleteYacht = connection.prepareStatement("DELETE FROM Jachtos WHERE Id = ?");
       updateSailNumber = connection.prepareStatement("UPDATE Jachtos SET BurėsNumeris = ? WHERE Id = ?");
       updateYachtClass = connection.prepareStatement("UPDATE Jachtos SET Modelis = ? WHERE Id = ?");
@@ -147,10 +146,11 @@ public class Yacht extends NamedEntity {
  * @param captain kapitonas (gali būti null)
  * @param owner savininkas (gali būti null)
  * @param sponsors rėmėjai
+ * @param notes pastabos
  * @return jachta, jeigu sukūrimas pavyko, arba null, jei jachta su tokiu burės
  *         numeriu jau egzistavo arba įvyko kita klaida
  */
-  public static Yacht create(String sailNumber, YachtClass yachtClass, String name, int year, String captain, String owner, String sponsors) {
+  public static Yacht create(String sailNumber, YachtClass yachtClass, String name, int year, String captain, String owner, String sponsors, String notes) {
     Yacht yacht = null;
     try {
       insertYacht.setString(1, sailNumber);
@@ -175,8 +175,12 @@ public class Yacht extends NamedEntity {
         insertYacht.setNull(7, java.sql.Types.VARCHAR);
       else
         insertYacht.setString(7, sponsors);
+      if (notes == null)
+        insertYacht.setNull(8, java.sql.Types.VARCHAR);
+      else
+        insertYacht.setString(8, notes);
       if (insertYacht.executeUpdate() == 1) {
-        yacht = new Yacht(getLastInsertId(), sailNumber, yachtClass.getId(), name, year, captain, owner, sponsors);
+        yacht = new Yacht(getLastInsertId(), sailNumber, yachtClass.getId(), name, year, captain, owner, sponsors, notes);
       } else {
         // TODO
       }
@@ -184,6 +188,14 @@ public class Yacht extends NamedEntity {
       logger.error("create SQL error: " + exception.getMessage());
     }
     return yacht;
+  }
+
+/**
+ * Tas pats jachtos kūrimas, tik be pastabų.
+ * Suderinamumui su pirminėmis sąsajomis.
+ */
+  public static Yacht create(String sailNumber, YachtClass yachtClass, String name, int year, String captain, String owner, String sponsors) {
+    return create(sailNumber, yachtClass, name, year, captain, owner, sponsors, null);
   }
 
   /**
