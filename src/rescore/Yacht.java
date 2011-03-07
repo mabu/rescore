@@ -260,82 +260,41 @@ public class Yacht extends NamedEntity {
   }
 
   public boolean setYear(int year) {
-    boolean ret = false;
-    try {
-      if (year == 0)
-        updateYear.setNull(1, java.sql.Types.INTEGER);
-      else
-        updateYear.setInt(1, year);
-      updateYear.setInt(2, id);
-      int rowsAffected = updateYear.executeUpdate();
-      if (rowsAffected == 1) {
-        this.year = year;
-        ret = true;
-      } else {
-        logger.warn("Strange setYear updated database rows count: " + rowsAffected);
-      }
-    } catch (SQLException exception) {
-      logger.error("setYear SQL error: " + exception.getMessage());
+    if (year == this.year)
+      return false;
+    if (updateInt(updateYear, year)) {
+      this.year = year;
+      return true;
     }
-    return ret;
+    return false;
   }
 
   public boolean setCaptain(String captain) {
-    try {
-      if (captain == null)
-        updateCaptain.setNull(1, java.sql.Types.VARCHAR);
-      else
-        updateCaptain.setString(1, captain);
-      updateCaptain.setInt(2, id);
-      int rowsAffected = updateCaptain.executeUpdate();
-      if (rowsAffected == 1) {
-        this.captain = captain;
-        return true;
-      } else {
-        logger.warn("Strange setCaptain updated database rows count: " + rowsAffected);
-      }
-    } catch (SQLException exception) {
-      logger.error("setCaptain SQL error: " + exception.getMessage());
+    if (captain.equals(this.captain))
+      return false;
+    if (updateString(updateCaptain, captain)) {
+      this.captain = captain;
+      return true;
     }
     return false;
   }
 
   public boolean setOwner(String owner) {
-    try {
-      if (owner == null)
-        updateOwner.setNull(1, java.sql.Types.VARCHAR);
-      else
-        updateOwner.setString(1, owner);
-      updateOwner.setInt(2, id);
-      int rowsAffected = updateOwner.executeUpdate();
-      if (rowsAffected == 1) {
-        this.owner = owner;
-        return true;
-      } else {
-        logger.warn("Strange setOwner updated database rows count: " + rowsAffected);
-      }
-    } catch (SQLException exception) {
-      logger.error("setOwner SQL error: " + exception.getMessage());
+    if (owner.equals(this.owner))
+      return false;
+    if (updateString(updateOwner, owner)) {
+      this.owner = owner;
+      return true;
     }
     return false;
   }
 
   public boolean setSponsors(String sponsors) {
-    try {
-      if (sponsors == null)
-        updateSponsors.setNull(1, java.sql.Types.VARCHAR);
-      else
-        updateSponsors.setString(1, sponsors);
-      updateSponsors.setInt(2, id);
-      int rowsAffected = updateSponsors.executeUpdate();
-      if (rowsAffected == 1) {
-        this.sponsors = sponsors;
-        return true;
-      } else {
-        logger.warn("Strange setSponsors updated database rows count: " + rowsAffected);
-      }
-    } catch (SQLException exception) {
-      logger.error("setSponsors SQL error: " + exception.getMessage());
+    if (sponsors.equals(this.sponsors))
+      return false;
+    if (updateString(updateSponsors, sponsors)) {
+      this.sponsors = sponsors;
+      return true;
     }
     return false;
   }

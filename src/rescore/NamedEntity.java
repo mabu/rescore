@@ -30,7 +30,7 @@ public abstract class NamedEntity {
 
   // objectMaps inicializacija
   static {
-    Class[] subClasses = {Yacht.class, YachtClass.class, Captain.class, Owner.class}; // palaikomi poklasiai
+    Class[] subClasses = {Yacht.class, YachtClass.class}; // palaikomi poklasiai
     for (Class<? extends NamedEntity> subClass : subClasses)
       objectMaps.put(subClass, new TreeMap<Integer, WeakReference<NamedEntity> >());
     }
@@ -147,47 +147,25 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
   }
 
   protected boolean setName(String name, PreparedStatement updateName) {
-    boolean ret = false;
-    try {
-      if (name == null)
-        updateName.setNull(1, java.sql.Types.VARCHAR);
-      else
-        updateName.setString(1, name);
-      updateName.setInt(2, id);
-      int rowsAffected = updateName.executeUpdate();
-      if (rowsAffected == 1) {
-        this.name = name;
-        ret = true;
-      } else {
-        logger.warn("Strange setName updated database rows count: " + rowsAffected);
-      }
-    } catch (SQLException exception) {
-      logger.error("setName SQL error: " + exception.getMessage());
+    if (name.equals(this.name))
+      return false;
+    if (updateString(updateName, name)) {
+      this.name = name;
+      return true;
     }
-    return ret;
+    return false;
   }
 
   abstract public boolean setName(String name);
 
   protected boolean setNotes(String notes, PreparedStatement updateNotes) {
-    boolean ret = false;
-    try {
-      if (notes == null)
-        updateNotes.setNull(1, java.sql.Types.VARCHAR);
-      else
-        updateNotes.setString(1, notes);
-      updateNotes.setInt(2, id);
-      int rowsAffected = updateNotes.executeUpdate();
-      if (rowsAffected == 1) {
-        this.notes = notes;
-        ret = true;
-      } else {
-        logger.warn("Strange setNotes updated database rows count: " + rowsAffected);
-      }
-    } catch (SQLException exception) {
-      logger.error("setNotes SQL error: " + exception.getMessage());
+    if (notes.equals(this.notes))
+      return false;
+    if (updateString(updateNotes, notes)) {
+      this.notes = notes;
+      return true;
     }
-    return ret;
+    return false;
   }
 
   abstract public boolean setNotes(String notes);
@@ -246,6 +224,58 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
     } catch (SQLException exception) {
       logger.error("prepareStatements SQL error: " + exception.getMessage());
     }
+  }
+
+/**
+ * Įvykdo užklausą VARCHAR lauko atnaujinimui.
+ *
+ * @param update paruoštas update sakinys, kuriam duodamas String ir Id
+ * @param value nauja reikšmė
+ * @return true, jei užklausa įvykdyta ir pakito 1 eilutė, false priešingu atveju
+ */
+  protected boolean updateString(PreparedStatement update, String value) {
+    try {
+      if (value == null)
+        update.setNull(1, java.sql.Types.VARCHAR);
+      else
+        update.setString(1, value);
+      update.setInt(2, id);
+      int rowsAffected = update.executeUpdate();
+      if (rowsAffected == 1) {
+        return true;
+      } else {
+        logger.warn("Strange updateString updated database rows count: " + rowsAffected);
+      }
+    } catch (SQLException exception) {
+      logger.error("updateString SQL error: " + exception.getMessage());
+    }
+    return false;
+  }
+
+/**
+ * Įvykdo užklausą INTEGER lauko atnaujinimui.
+ *
+ * @param update paruoštas update sakinys, kuriam duodamas int ir Id
+ * @param value nauja reikšmė; 0 paverčiamas į NULL
+ * @return true, jei užklausa įvykdyta ir pakito 1 eilutė, false priešingu atveju
+ */
+  protected boolean updateInt(PreparedStatement update, int value) {
+    try {
+      if (value == 0)
+        update.setNull(1, java.sql.Types.INTEGER);
+      else
+        update.setInt(1, value);
+      update.setInt(2, id);
+      int rowsAffected = update.executeUpdate();
+      if (rowsAffected == 1) {
+        return true;
+      } else {
+        logger.warn("Strange updateInt updated database rows count: " + rowsAffected);
+      }
+    } catch (SQLException exception) {
+      logger.error("updateInt SQL error: " + exception.getMessage());
+    }
+    return false;
   }
 
   protected void finalize () {
