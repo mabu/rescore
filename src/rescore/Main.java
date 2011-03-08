@@ -33,6 +33,7 @@ public class Main {
     YachtClass.prepareStatements(connection);
     NamedEntity.prepareStatements(connection);
     Regatta.prepareStatements(connection);
+    Group.prepareStatements(connection);
 
     (new YachtManager(System.in, System.out)).start();
   }

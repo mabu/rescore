@@ -5,7 +5,6 @@
 package rescore;
 
 import java.util.List;
-import java.util.Vector;
 import java.util.Date;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
@@ -30,7 +29,6 @@ public class Regatta extends NamedEntity {
     this.region = region;
     this.beginning = beginning;
     this.end = end;
-    this.notes = notes;
   }
 
 /**

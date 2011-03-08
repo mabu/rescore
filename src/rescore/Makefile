@@ -7,6 +7,7 @@ SOURCE  = \
 	Main.java \
 	NamedEntity.java \
 	Regatta.java \
+	Group.java \
 
 RMI_SOURCE =
 

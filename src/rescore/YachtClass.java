@@ -5,7 +5,6 @@
 package rescore;
 
 import java.util.List;
-import java.util.Vector;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
