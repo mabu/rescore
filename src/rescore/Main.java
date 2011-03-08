@@ -34,6 +34,7 @@ public class Main {
     NamedEntity.prepareStatements(connection);
     Regatta.prepareStatements(connection);
     Group.prepareStatements(connection);
+    Leg.prepareStatements(connection);
 
     (new YachtManager(System.in, System.out)).start();
   }

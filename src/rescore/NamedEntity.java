@@ -30,7 +30,7 @@ public abstract class NamedEntity {
 
   // objectMaps inicializacija
   static {
-    Class[] subClasses = {Yacht.class, YachtClass.class, Regatta.class, Group.class}; // palaikomi poklasiai
+    Class[] subClasses = {Yacht.class, YachtClass.class, Regatta.class, Group.class, Leg.class}; // palaikomi poklasiai
     for (Class<? extends NamedEntity> subClass : subClasses)
       objectMaps.put(subClass, new TreeMap<Integer, WeakReference<NamedEntity> >());
     }
