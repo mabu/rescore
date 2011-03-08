@@ -237,7 +237,8 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
  *
  * @param update paruoštas update sakinys, kuriam duodamas String ir Id
  * @param value nauja reikšmė
- * @return true, jei užklausa įvykdyta ir pakito 1 eilutė, false priešingu atveju
+ * @return true, jei užklausa įvykdyta ir pakito 1 eilutė;
+ *         false priešingu atveju
  */
   protected boolean updateString(PreparedStatement update, String value) {
     try {
@@ -263,7 +264,8 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
  *
  * @param update paruoštas update sakinys, kuriam duodamas int ir Id
  * @param value nauja reikšmė; 0 paverčiamas į NULL
- * @return true, jei užklausa įvykdyta ir pakito 1 eilutė, false priešingu atveju
+ * @return true, jei užklausa įvykdyta ir pakito 1 eilutė;
+ *         false priešingu atveju
  */
   protected boolean updateInt(PreparedStatement update, int value) {
     try {
