@@ -6,6 +6,7 @@ SOURCE  = \
 	YachtManager.java \
 	Main.java \
 	NamedEntity.java \
+	Regatta.java \
 
 RMI_SOURCE =
 

@@ -234,21 +234,20 @@ public class Yacht extends NamedEntity {
   }
 
   public boolean setYachtClass(YachtClass yachtClass) {
-    boolean ret = false;
     try {
       updateYachtClass.setInt(1, yachtClass.getId());
       updateYachtClass.setInt(2, id);
       int rowsAffected = updateYachtClass.executeUpdate();
       if (rowsAffected == 1) {
         this.yachtClass = yachtClass;
-        ret = true;
+        return true;
       } else {
         logger.warn("Strange setYachtClass updated database rows count: " + rowsAffected);
       }
     } catch (SQLException exception) {
       logger.error("setYachtClass SQL error: " + exception.getMessage());
     }
-    return ret;
+    return false;
   }
 
   public boolean setName(String name) {
@@ -270,7 +269,10 @@ public class Yacht extends NamedEntity {
   }
 
   public boolean setCaptain(String captain) {
-    if (captain.equals(this.captain))
+    if (captain == null) {
+      if (this.captain == null)
+        return false;
+    } else if (captain.equals(this.captain))
       return false;
     if (updateString(updateCaptain, captain)) {
       this.captain = captain;
@@ -280,7 +282,10 @@ public class Yacht extends NamedEntity {
   }
 
   public boolean setOwner(String owner) {
-    if (owner.equals(this.owner))
+    if (owner == null) {
+      if (this.owner == null)
+        return false;
+    } else if (owner.equals(this.owner))
       return false;
     if (updateString(updateOwner, owner)) {
       this.owner = owner;
@@ -290,7 +295,10 @@ public class Yacht extends NamedEntity {
   }
 
   public boolean setSponsors(String sponsors) {
-    if (sponsors.equals(this.sponsors))
+    if (sponsors == null) {
+      if (this.sponsors == null)
+        return false;
+    } else if (sponsors.equals(this.sponsors))
       return false;
     if (updateString(updateSponsors, sponsors)) {
       this.sponsors = sponsors;

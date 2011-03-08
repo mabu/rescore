@@ -31,9 +31,8 @@ public class Main {
 
     Yacht.prepareStatements(connection);
     YachtClass.prepareStatements(connection);
-    Captain.prepareStatements(connection);
-    Owner.prepareStatements(connection);
     NamedEntity.prepareStatements(connection);
+    Regatta.prepareStatements(connection);
 
     (new YachtManager(System.in, System.out)).start();
   }

@@ -30,7 +30,7 @@ public abstract class NamedEntity {
 
   // objectMaps inicializacija
   static {
-    Class[] subClasses = {Yacht.class, YachtClass.class}; // palaikomi poklasiai
+    Class[] subClasses = {Yacht.class, YachtClass.class, Regatta.class}; // palaikomi poklasiai
     for (Class<? extends NamedEntity> subClass : subClasses)
       objectMaps.put(subClass, new TreeMap<Integer, WeakReference<NamedEntity> >());
     }
@@ -147,7 +147,10 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
   }
 
   protected boolean setName(String name, PreparedStatement updateName) {
-    if (name.equals(this.name))
+    if (name == null) {
+      if (this.name == null)
+        return false;
+    } else if (name.equals(this.name))
       return false;
     if (updateString(updateName, name)) {
       this.name = name;
@@ -159,7 +162,10 @@ protected static List getAll(PreparedStatement selectAll, PreparedStatement sele
   abstract public boolean setName(String name);
 
   protected boolean setNotes(String notes, PreparedStatement updateNotes) {
-    if (notes.equals(this.notes))
+    if (notes == null) {
+      if (this.notes == null)
+        return false;
+    } else if (notes.equals(this.notes))
       return false;
     if (updateString(updateNotes, notes)) {
       this.notes = notes;
