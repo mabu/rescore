@@ -5,6 +5,7 @@
 package rescore;
 
 import java.util.List;
+import java.util.Vector;
 import java.util.Date;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
 
 public class Group extends NamedEntity {
   private static Logger logger = Logger.getLogger(Group.class.getName());
-  private static PreparedStatement selectGroup, selectAllGroups, selectAllGroupIds, deleteGroup, updateName, updateNotes, insertGroup;
+  private static PreparedStatement selectGroup, selectAllGroups, selectAllGroupIds, deleteGroup, updateName, updateNotes, insertGroup, selectYachts;
 
   private Regatta regatta;
 
@@ -83,6 +84,7 @@ public class Group extends NamedEntity {
       updateName = connection.prepareStatement("UPDATE Grupės SET Pavadinimas = ? WHERE Id = ?");
       updateNotes = connection.prepareStatement("UPDATE Grupės SET Pastabos = ? WHERE Id = ?");
       deleteGroup = connection.prepareStatement("DELETE FROM Grupės WHERE Id = ?");
+      selectYachts = connection.prepareStatement("SELECT Jachta FROM Dalyviai WHERE Grupė = ?");
     } catch (SQLException exception) {
       logger.error("prepareStatements SQL error: " + exception.getMessage());
     }
@@ -130,6 +132,25 @@ public class Group extends NamedEntity {
 
   public boolean remove() {
     return remove(deleteGroup);
+  }
+
+  /**
+   * Grąžina šioje grupėje esančių jachtų sąrašą.
+   *
+   * @return šioje grupėje esančių jachtų sąrašas
+   */
+  public List<Yacht> getYachts() {
+    List<Yacht> yachts = new Vector<Yacht>();
+    try {
+      selectYachts.setInt(1, id);
+      ResultSet resultSet = selectYachts.executeQuery();
+      while (resultSet.next()) {
+        yachts.add(Yacht.get(resultSet.getInt(1)));
+      }
+    } catch (SQLException exception) {
+      logger.error("getYachts SQL error: " + exception.getMessage());
+    }
+    return yachts;
   }
 
 }
