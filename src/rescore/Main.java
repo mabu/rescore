@@ -9,6 +9,10 @@ import java.sql.DriverManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import rescore.views.MainWindow;
+
+import java.awt.EventQueue;
+
 public class Main {
   private static Logger logger = Logger.getLogger(Main.class.getName());
 
@@ -36,6 +40,20 @@ public class Main {
     Group.prepareStatements(connection);
     Leg.prepareStatements(connection);
 
+    EventQueue.invokeLater(new Runnable() {
+		public void run() {
+			try {
+				MainWindow window = new MainWindow();
+				window.frame.setVisible(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	});
+    
     (new YachtManager(System.in, System.out)).start();
+    
+
+    
   }
 }
