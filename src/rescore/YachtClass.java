@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 public class YachtClass extends NamedEntity {
   private static Logger logger = Logger.getLogger(YachtClass.class.getName());
   private static PreparedStatement selectYachtClass, selectAllYachtClasses, selectAllYachtClassIds, insertYachtClass, updateName, updateNotes, deleteYachtClass;
-  private String name;
   private float coefficient;
   private int projectYear, length, width;
   /** vandentalpa */
@@ -93,10 +92,10 @@ public class YachtClass extends NamedEntity {
  */
   static void prepareStatements(Connection connection) {
     try {
-      selectYachtClass = connection.prepareStatement("SELECT Pavadinimas, Pastabos FROM Modeliai WHERE Id = ?");
-      selectAllYachtClasses = connection.prepareStatement("SELECT Id, Pavadinimas, Pastabos FROM Modeliai ORDER BY Id");
+      selectYachtClass = connection.prepareStatement("SELECT Pavadinimas, Koeficientas, ProjektavimoMetai, Ilgis, Plotis, Vandentalpa, VaterlinijosIlgis, BuriųPlotasPlaukiantPavėjui, BuriųPlotasPlaukiantPriešVėją, Pastabos FROM Modeliai WHERE Id = ?");
+      selectAllYachtClasses = connection.prepareStatement("SELECT Id, Pavadinimas, Koeficientas, ProjektavimoMetai, Ilgis, Plotis, Vandentalpa, VaterlinijosIlgis, BuriųPlotasPlaukiantPavėjui, BuriųPlotasPlaukiantPriešVėją, Pastabos FROM Modeliai ORDER BY Id");
       selectAllYachtClassIds = connection.prepareStatement("SELECT Id FROM Modeliai ORDER BY Id");
-      insertYachtClass = connection.prepareStatement("INSERT INTO Modeliai (Pavadinimas, Modelis, Koeficientas, ProjektavimoMetai, Ilgis, Plotis, Vandentalpa, VaterlinijosIlgis, BuriųPlotasPlaukiantPavėjui, BuriųPlotasPlaukiantPriešVėją, Pastabos) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+      insertYachtClass = connection.prepareStatement("INSERT INTO Modeliai (Pavadinimas, Koeficientas, ProjektavimoMetai, Ilgis, Plotis, Vandentalpa, VaterlinijosIlgis, BuriųPlotasPlaukiantPavėjui, BuriųPlotasPlaukiantPriešVėją, Pastabos) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
       updateName = connection.prepareStatement("UPDATE Modeliai SET Pavadinimas = ? WHERE Id = ?");
       updateNotes = connection.prepareStatement("UPDATE Modeliai SET Pastabos = ? WHERE Id = ?");
       deleteYachtClass = connection.prepareStatement("DELETE FROM Modeliai WHERE Id = ?");
@@ -237,7 +236,4 @@ public class YachtClass extends NamedEntity {
 		this.sailAreaUpwind = sailAreaUpwind;
 	}
 
-	public String getName() {
-		return name;
-	}
 }

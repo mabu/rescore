@@ -106,11 +106,26 @@ public class AddYachtClassDialog extends JDialog {
 	}
 	
 	private void addNewYachtClassActionPerformed(ActionEvent ea){
-//		YachtClass newYachtClass = new YaC
-		System.out.println("OK pressed");
+		YachtClass newYachtClass = YachtClass.create(getTextField().getText(), Float.valueOf(getTextField_1().getText()), 0, 0, 0, 0, 0, 0, 0, null);
 	}
 	
 	private void cancelActionPerformed(ActionEvent ea){
 		setVisible(false);
+	}
+	
+	public JTextField getTextField() {
+		return textField;
+	}
+
+	public void setTextField(JTextField textField) {
+		this.textField = textField;
+	}
+
+	public JTextField getTextField_1() {
+		return textField_1;
+	}
+
+	public void setTextField_1(JTextField textField_1) {
+		this.textField_1 = textField_1;
 	}
 }

@@ -6,7 +6,7 @@ import rescore.YachtClass;
 
 public class YachtClassTableModel extends AbstractTableModel {
 
-    private String[] columnNames = { "Modelis" };
+    private String[] columnNames = { "Modelis", "Koeficientas", "Proj. metai", "Ilgis", "Plotis" };
     private Object[][] data = getTableData();
 	
 
@@ -15,7 +15,7 @@ public class YachtClassTableModel extends AbstractTableModel {
         Object[][] data = new Object[yachtClasses.size()][];
         int i = 0;
         for(YachtClass yachtClass : yachtClasses){
-            data[i] = new Object[] { yachtClass.getName() } ;
+            data[i] = new Object[] { yachtClass.getName(), yachtClass.getCoefficient(), yachtClass.getProjectYear(), yachtClass.getLength(), yachtClass.getWidth() } ;
             i++;
         }
         return data;
@@ -41,7 +41,4 @@ public class YachtClassTableModel extends AbstractTableModel {
         return getValueAt(0, c).getClass();
     }
 
-    public boolean isCellEditable(int row, int col) { 
-    	return true; 
-    }
 }

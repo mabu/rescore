@@ -121,7 +121,7 @@ public class MainWindow implements ActionListener {
         yachtsCard.add(new YachtListView());
         
         JPanel modelsCard = new JPanel();
-        modelsCard.add(new ClassListView());
+        modelsCard.add(new YachtClassListView());
         
         cards = new JPanel(new CardLayout());
         cards.add(regattasCard, REGATTAS_PANEL);
